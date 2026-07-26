@@ -108,12 +108,12 @@ export default function QuestionLibraryPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl font-semibold">Question Library</h1>
           <p className="mt-1 text-sm text-muted">{total} question{total === 1 ? '' : 's'} in your vault</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <ExportMenu label="Export all" onExport={(format) => exportQuestionsRequest({ format })} />
           <button onClick={() => importInputRef.current?.click()} className="btn-ghost">
             <Upload size={16} /> Import
@@ -142,56 +142,58 @@ export default function QuestionLibraryPage() {
       )}
 
       <div className="glass-card space-y-3 p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative min-w-[220px] flex-1">
-            <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-            <input
-              className="input-field pl-9"
-              placeholder="Search title, notes, tags…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+        <div className="relative w-full">
+          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+          <input
+            className="input-field w-full pl-9"
+            placeholder="Search title, notes, tags…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
 
+        <div className="flex flex-wrap items-center gap-2">
           <Select
             value={filters.difficulty}
             onChange={(v) => updateFilter('difficulty', v)}
             options={DIFFICULTIES}
             placeholder="Difficulty"
-            className="w-36"
+            className="w-[calc(50%-4px)] sm:w-36"
           />
           <Select
             value={filters.company}
             onChange={(v) => updateFilter('company', v)}
             options={facets?.companies || []}
             placeholder="Company"
-            className="w-40"
+            className="w-[calc(50%-4px)] sm:w-40"
           />
           <Select
             value={filters.topic}
             onChange={(v) => updateFilter('topic', v)}
             options={facets?.topics || []}
             placeholder="Topic"
-            className="w-40"
+            className="w-[calc(50%-4px)] sm:w-40"
           />
           <Select
             value={filters.language}
             onChange={(v) => updateFilter('language', v)}
             options={LANGUAGES}
             placeholder="Language"
-            className="w-36"
+            className="w-[calc(50%-4px)] sm:w-36"
           />
           <Select
             value={filters.status}
             onChange={(v) => updateFilter('status', v)}
             options={STATUSES}
             placeholder="Status"
-            className="w-40"
+            className="w-[calc(50%-4px)] sm:w-40"
           />
 
           <button
             onClick={() => updateFilter('favorite', filters.favorite === 'true' ? undefined : 'true')}
-            className={`btn-ghost ${filters.favorite === 'true' ? 'border-warning/40 text-warning' : ''}`}
+            className={`btn-ghost w-[calc(50%-4px)] justify-center sm:w-auto sm:justify-start ${
+              filters.favorite === 'true' ? 'border-warning/40 text-warning' : ''
+            }`}
           >
             <Star size={16} fill={filters.favorite === 'true' ? '#FBBF24' : 'none'} /> Favorites
           </button>
@@ -201,23 +203,23 @@ export default function QuestionLibraryPage() {
             onChange={(v) => setSortBy(v || 'createdAt')}
             options={['createdAt', 'updatedAt', 'title', 'difficulty', 'personalRating']}
             placeholder="Sort by"
-            className="w-40"
+            className="w-[calc(50%-4px)] sm:ml-auto sm:w-40"
           />
 
-          <div className="ml-auto flex overflow-hidden rounded-lg border border-white/10">
+          <div className="flex w-full overflow-hidden rounded-lg border border-white/10 sm:w-auto">
             <button
               onClick={() => setView('card')}
-              className={`p-2 ${view === 'card' ? 'bg-white/[0.08] text-white' : 'text-muted'}`}
+              className={`flex-1 p-2 sm:flex-none ${view === 'card' ? 'bg-white/[0.08] text-white' : 'text-muted'}`}
               aria-label="Card view"
             >
-              <LayoutGrid size={16} />
+              <LayoutGrid size={16} className="mx-auto" />
             </button>
             <button
               onClick={() => setView('table')}
-              className={`p-2 ${view === 'table' ? 'bg-white/[0.08] text-white' : 'text-muted'}`}
+              className={`flex-1 p-2 sm:flex-none ${view === 'table' ? 'bg-white/[0.08] text-white' : 'text-muted'}`}
               aria-label="Table view"
             >
-              <Rows3 size={16} />
+              <Rows3 size={16} className="mx-auto" />
             </button>
           </div>
         </div>
