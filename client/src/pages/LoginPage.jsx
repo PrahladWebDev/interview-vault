@@ -95,12 +95,6 @@ export default function LoginPage() {
             Create an account
           </Link>
         </p>
-
-        <p className="mt-4 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-center text-xs text-muted">
-          Demo login: <span className="font-mono">demo@interviewvault.dev</span> /{' '}
-          <span className="font-mono">password123</span> (after running{' '}
-          <span className="font-mono">npm run seed</span>)
-        </p>
       </motion.div>
     </AuthShell>
   );
