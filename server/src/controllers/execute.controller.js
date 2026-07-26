@@ -2,9 +2,23 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
 
 // Wires up real "Run code" execution using Piston (https://github.com/engineer-man/piston),
-// a free, keyless, sandboxed multi-language execution API. We resolve a runtime version
-// dynamically (and cache it) instead of hardcoding version numbers that go stale.
-const PISTON_BASE = 'https://emkc.org/api/v2/piston';
+// a free, sandboxed multi-language execution API. Points at our own self-hosted
+// instance, which sits behind Nginx requiring an X-Compiler-Key header (see
+// PISTON_SECRET). We resolve a runtime version dynamically (and cache it) instead
+// of hardcoding version numbers that go stale.
+const PISTON_BASE = process.env.PISTON_URL || 'https://compiler.prahladsingh.in/api/v2';
+const PISTON_SECRET = process.env.PISTON_SECRET;
+
+if (!PISTON_SECRET) {
+  console.warn('[execute] PISTON_SECRET is not set — requests to the compiler will get a 403.');
+}
+
+function pistonHeaders(extra = {}) {
+  return {
+    ...extra,
+    ...(PISTON_SECRET ? { 'X-Compiler-Key': PISTON_SECRET } : {}),
+  };
+}
 
 const LANGUAGE_HINTS = {
   javascript: ['javascript', 'node', 'js'],
@@ -52,10 +66,14 @@ async function getRuntimes() {
 
   let response;
   try {
-    response = await fetch(`${PISTON_BASE}/runtimes`);
+    response = await fetch(`${PISTON_BASE}/runtimes`, { headers: pistonHeaders() });
   } catch (err) {
     console.error('[execute] Failed to reach Piston runtimes endpoint:', err.message);
     throw new ApiError(502, 'Could not reach the code execution service. Try again in a moment.');
+  }
+  if (response.status === 403) {
+    console.error('[execute] Piston rejected the runtimes request (403) — check PISTON_SECRET matches the Nginx config.');
+    throw new ApiError(502, 'The code execution service rejected the request. Check server configuration.');
   }
   if (!response.ok) {
     const detail = await readErrorDetail(response);
@@ -103,14 +121,14 @@ export const executeCode = asyncHandler(async (req, res) => {
   try {
     pistonRes = await fetch(`${PISTON_BASE}/execute`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: pistonHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         language: runtime.language,
         version: runtime.version,
         files: [{ name: FILE_NAMES[language] || 'main.txt', content: code }],
         stdin,
-        compile_timeout: 10000,
-        run_timeout: 5000,
+        compile_timeout: 3000,
+        run_timeout: 3000,
       }),
     });
   } catch (err) {
@@ -119,6 +137,10 @@ export const executeCode = asyncHandler(async (req, res) => {
 
   if (pistonRes.status === 429) {
     throw new ApiError(429, 'The code execution service is rate-limited — wait a few seconds and try again.');
+  }
+  if (pistonRes.status === 403) {
+    console.error('[execute] Piston rejected the request (403) — check PISTON_SECRET matches the Nginx config.');
+    throw new ApiError(502, 'The code execution service rejected the request. Check server configuration.');
   }
   if (!pistonRes.ok) {
     const detail = await readErrorDetail(pistonRes);
