@@ -43,7 +43,7 @@ export default function ExportMenu({ onExport, label = 'Export', disabled = fals
         <Download size={16} /> {busy ? 'Exporting…' : label} <ChevronDown size={14} />
       </button>
       {open && (
-        <div className="glass-card absolute right-0 top-full z-20 mt-2 w-52 space-y-1 p-2">
+        <div className="glass-card absolute left-0 top-full z-20 mt-2 w-52 max-w-[calc(100vw-2rem)] space-y-1 p-2 sm:left-auto sm:right-0">
           {FORMATS.map(({ id, label: fLabel, icon: Icon, hint }) => (
             <button
               key={id}
