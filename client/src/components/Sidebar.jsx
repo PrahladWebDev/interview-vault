@@ -1,6 +1,6 @@
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Library, Building2, Layers, FolderKanban, GitBranch, BarChart3, Settings, Vault, ChevronsLeft, ChevronsRight, LogOut, Search, ClipboardList } from 'lucide-react';
-import { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Library, Building2, Layers, FolderKanban, GitBranch, BarChart3, Settings, Vault, ChevronsLeft, ChevronsRight, LogOut, Search, ClipboardList, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const NAV_ITEMS = [
@@ -17,20 +17,50 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { user, logout } = useAuth();
+  const location = useLocation();
+
+  // Mobile hamburger (in AppLayout) dispatches this to open the drawer.
+  useEffect(() => {
+    function onToggleRequest() {
+      setMobileOpen((o) => !o);
+    }
+    window.addEventListener('toggle-mobile-sidebar', onToggleRequest);
+    return () => window.removeEventListener('toggle-mobile-sidebar', onToggleRequest);
+  }, []);
+
+  // Close the mobile drawer whenever the route changes.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
 
   return (
-    <aside
-      className={`glass-panel flex h-screen flex-col border-r border-white/[0.06] transition-all duration-300 ${
-        collapsed ? 'w-[76px]' : 'w-64'
-      }`}
-    >
-      <div className="flex items-center gap-2 px-4 py-5">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-gradient shadow-glow">
-          <Vault size={18} className="text-white" />
+    <>
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+      <aside
+        className={`glass-panel fixed inset-y-0 left-0 z-50 flex h-screen w-64 flex-col border-r border-white/[0.06] transition-transform duration-300 lg:static lg:z-auto lg:transition-[width] lg:duration-300 ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0 ${collapsed ? 'lg:w-[76px]' : 'lg:w-64'}`}
+      >
+        <div className="flex items-center gap-2 px-4 py-5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-gradient shadow-glow">
+            <Vault size={18} className="text-white" />
+          </div>
+          {!collapsed && <span className="font-display text-lg font-semibold tracking-tight flex-1">InterviewVault</span>}
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-white/[0.05] hover:text-slate-100 lg:hidden"
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
         </div>
-        {!collapsed && <span className="font-display text-lg font-semibold tracking-tight">InterviewVault</span>}
-      </div>
 
       <div className="px-3 pb-2">
         <button
@@ -88,12 +118,13 @@ export default function Sidebar() {
         </button>
         <button
           onClick={() => setCollapsed((c) => !c)}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:bg-white/[0.03] hover:text-slate-100"
+          className="hidden w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:bg-white/[0.03] hover:text-slate-100 lg:flex"
         >
           {collapsed ? <ChevronsRight size={18} /> : <ChevronsLeft size={18} />}
           {!collapsed && <span>Collapse</span>}
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
