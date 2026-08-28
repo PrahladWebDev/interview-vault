@@ -24,11 +24,11 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             echo "=== Pulling latest code ==="
-            cd /home/prahlad/interviewvault
+            cd /var/www/projects/interviewvault
             git pull origin main
 
             echo "=== Installing backend dependencies ==="
-            cd /home/prahlad/interviewvault/server
+            cd /var/www/projects/interviewvault/server
             npm install --omit=dev
 
             echo "=== Restarting API with PM2 ==="
@@ -72,7 +72,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
           source: "client/dist/*"
-          target: "/home/prahlad/interviewvault/client/"
+          target: "/var/www/projects/interviewvault/client/"
           strip_components: 1
 
       - name: Reload Nginx
